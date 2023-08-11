@@ -5,7 +5,7 @@
 #include "pitches.h"
 
 // Joystick
-#define btn 1  //5
+#define btn 1
 #define j_x A2
 #define j_y A3
 
@@ -32,38 +32,46 @@ int score = 0;
 
 // Sound
 #define buzzer_pin 0
-#define S_COLLECT 0
-#define S_TEST 1
-char s_lens[] = { 2, 3 };
-int s_collect[2][2] = { { NOTE_C3, NOTE_G1 }, { 40, 60 } };
-int s_test[3][3] = { { NOTE_C3, NOTE_G1, NOTE_G3 }, { 40, 60, 100 } };
+int s_collect[2][3] = { { NOTE_C3, NOTE_G1, NOTE_END }, { 40, 60, 00 } };
+int s_test[2][4] = { { NOTE_C3, NOTE_G1, NOTE_G3, NOTE_END }, { 40, 60, 100, 00 } };
+int s_game_over[2][7] = { { 37, 35, 33, 31, 29, 27, NOTE_END }, { 100, 100, 100, 100, 100, 200, 00 } };
+enum sounds {
+  Collect,
+  Test,
+  GameOver
+};
 bool playing = false;
-char current_note = 0;
-char sound_len;
+int* current_note;
+int* current_delay;
 u_long start_time_playing;
-int** current_sound;
-char current_sound_max_notes;
 
-void play_sound(int** sound_to_play, char s_id) {
-  Serial.println("set sound");
-  current_sound = sound_to_play;
-  current_note = 0;
-  current_sound_max_notes = s_lens[s_id];
+void play_sound(char sound_id) {
   playing = true;
   start_time_playing = millis();
-  Serial.println(current_sound[0][current_note]);
-  tone(buzzer_pin, current_sound[0][current_note]);
+  switch (sound_id) {
+    case Test:
+      current_note = s_test[0];
+      current_delay = s_test[1];
+      break;
+    case Collect:
+      current_note = s_collect[0];
+      current_delay = s_collect[1];
+      break;
+    case GameOver:
+      current_note = s_game_over[0];
+      current_delay = s_game_over[1];
+      break;
+  }
+  tone(buzzer_pin, *current_note);
 }
 
 void sound() {
-  if(current_note>1) return;
-  if (!playing) return;
-  if (millis() - start_time_playing <= current_sound[1][2]) return;
+  if ((millis() - start_time_playing) <= *current_delay || !playing) return;
   start_time_playing = millis();
-  current_note += 1;
-  tone(buzzer_pin, current_sound[0][current_note]);
-  Serial.println(current_sound[0][current_note]);
-  if (current_note >= current_sound_max_notes) {
+  current_note++;
+  current_delay++;
+  tone(buzzer_pin, *current_note);
+  if (*current_note == NOTE_END) {
     playing = false;
     noTone(buzzer_pin);
   }
@@ -122,8 +130,6 @@ void setup() {
 
   display.display();
   delay(2000);
-
-  //play_sound((int**)s_collect, S_COLLECT);
 }
 
 bool jBtnDown() {
@@ -142,6 +148,8 @@ int jState() {
   else return NONE;
 }
 
+char tonec = 31;
+bool toneb = true;
 void settings() {
   while (jBtnDown())
     ;
@@ -152,6 +160,17 @@ void settings() {
     display.setTextSize(2);
     display.setTextColor(SSD1306_WHITE);
     display.println(F("SETTINGS"));
+
+    display.println((int)tonec);
+
+    if (jState() == UP) {
+      tone(buzzer_pin, tonec);
+    } else if (jState() == DOWN) {
+      noTone(buzzer_pin);
+    }
+    if (jState() == LEFT && toneb) tonec -= 2;
+    if (jState() == RIGHT && toneb) tonec += 2;
+    toneb = (jState() != LEFT) && (jState() != RIGHT);
 
     display.display();
 
@@ -181,6 +200,9 @@ void game() {
     if (js != NONE && !(snake_dir == UP && js == DOWN) && !(snake_dir == DOWN && js == UP) && !(snake_dir == LEFT && js == RIGHT) && !(snake_dir == RIGHT && js == LEFT))
       snake_dir = js;
 
+    // Sound Step
+    sound();
+
     // Logic Step
     for (int i = snake_current_len - 1; i > 0; i--) {
       snake_pos[i][0] = snake_pos[i - 1][0];
@@ -208,6 +230,7 @@ void game() {
       if (snake_current_len < SNAKE_MAX_LEN)
         snake_current_len++;
       score += 1;
+      play_sound(Collect);
       random_food_pos();
       while (snake_on_food()) {
         random_food_pos();
@@ -248,7 +271,9 @@ void game() {
 
     if (gameover) break;
   }
+  play_sound(GameOver);
   for (int counter = 0; counter <= score; counter++) {
+    //sound();
     display.clearDisplay();
     display.setCursor(10, 10);
     display.setTextSize(2);
@@ -272,8 +297,8 @@ void game() {
     display.display();
     delay(10);
   }
-  while (!jBtnDown())
-    ;
+
+  while (!jBtnDown()) sound();
 }
 
 int menu() {
@@ -281,7 +306,7 @@ int menu() {
   byte pos = 0;
   bool used = false;
   while (1) {
-    //sound();
+    sound();
     display.clearDisplay();
 
     display.setCursor(25, 0);
