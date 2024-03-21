@@ -204,7 +204,7 @@ void reset_game() {
 
 void game() {
     while (jBtnDown());
-    while (1) {
+    while (true) {
         // Input Step
         int js = jState();
         if (js != NONE && !(snake_dir == UP && js == DOWN) && !(snake_dir == DOWN && js == UP) &&
@@ -318,7 +318,7 @@ int menu() {
     bool color = false;
     byte pos = 0;
     bool used = false;
-    while (1) {
+    while (true) {
         sound();
         display.clearDisplay();
 
