@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_SSD1306.h>
-#include "pitches.h"
+#include "pitches.hcc"
 
 // Joystick
 #define btn 1
