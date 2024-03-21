@@ -232,6 +232,9 @@ void game() {
             case RIGHT:
                 snake_pos[0][0] += 1;
                 break;
+            default:
+                Serial.println(F("Error: Invalid Direction"));
+                break;
         }
 
         // Check Food
@@ -264,13 +267,13 @@ void game() {
 
         // Draw Edge
         display.fillRect(0, 0, display.width(), display.height(), SSD1306_INVERSE);
-        display.fillRect(2, 2, display.width() - EDGE, display.height() - EDGE, SSD1306_INVERSE);
+        display.fillRect(2, 2, display.width() - EDGE, display.height() - EDGE, SSD1306_INVERSE); // NOLINT(*-narrowing-conversions)
 
         // Draw Food
-        display.drawPixel(food_pos[0], food_pos[1], SSD1306_WHITE);
-        display.drawPixel(food_pos[0] + 1, food_pos[1], SSD1306_WHITE);
-        display.drawPixel(food_pos[0], food_pos[1] + 1, SSD1306_WHITE);
-        display.drawPixel(food_pos[0] + 1, food_pos[1] + 1, SSD1306_WHITE);
+        display.drawPixel(food_pos[0], food_pos[1], SSD1306_WHITE); // NOLINT(*-narrowing-conversions)
+        display.drawPixel(food_pos[0] + 1, food_pos[1], SSD1306_WHITE); // NOLINT(*-narrowing-conversions)
+        display.drawPixel(food_pos[0], food_pos[1] + 1, SSD1306_WHITE); // NOLINT(*-narrowing-conversions)
+        display.drawPixel(food_pos[0] + 1, food_pos[1] + 1, SSD1306_WHITE); // NOLINT(*-narrowing-conversions)
 
         // Draw Snake
         for (int i = 0; i < snake_current_len; i++) {
