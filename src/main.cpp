@@ -118,7 +118,7 @@ enum menu_res {
     PLAY = 1, SETTINGS = 2
 };
 
-void setup() {
+[[noreturn]] void setup() {
     Serial.begin(9600);
 
     // Joystick
